@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.title }} | TECH WORLD Detail</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --dark-blue: #0a192f;
+            --accent-blue: #007bff;
+            --soft-bg: #f8f9fa;
+            --border-color: #eee;
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: #fff; color: #333; }
+
+        /* --- NAVBAR QISMI --- */
+        .header-nav {
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-logo { font-weight: 800; color: var(--dark-blue); font-size: 1.5rem; text-decoration: none; display: flex; align-items: center; }
+        .nav-logo span { color: var(--accent-blue); }
+        .nav-links a { color: #333; font-weight: 600; margin: 0 15px; text-decoration: none; font-size: 14px; transition: 0.3s; }
+        .nav-links a:hover { color: var(--accent-blue); }
+
+        /* Rasmga moslangan o'ng tomon elementlari */
+        .nav-right-tools { display: flex; align-items: center; gap: 20px; }
+        .auth-links { font-weight: 700; color: #333; font-size: 15px; text-decoration: none; }
+        .btn-login-outline {
+            border: 1px solid #333;
+            padding: 5px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-login-outline:hover { background: #333; color: #fff; }
+
+        .icon-btn { position: relative; cursor: pointer; color: #333; font-size: 1.4rem; }
+        .badge-red {
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            background: #dc3545;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            font-weight: 800;
+        }
+        .badge-blue {
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            background: #007bff;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            font-weight: 800;
+        }
+
+        /* --- SAVAT MODAL --- */
+        .cart-sidebar {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 350px;
+            height: 100%;
+            background: #fff;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.1);
+            z-index: 1050;
+            transition: 0.4s ease;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+        .cart-sidebar.active { right: 0; }
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            z-index: 1040;
+        }
+        .cart-item { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #f5f5f5; padding-bottom: 15px; }
+        .cart-item img { width: 60px; height: 60px; border-radius: 10px; background: var(--soft-bg); object-fit: contain; }
+
+        /* Detail Wrapper */
+        .detail-wrapper { padding: 60px 0; }
+        .img-display-area {
+            background: #ebebeb;
+            border-radius: 25px;
+            padding: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: sticky;
+            top: 100px;
+            transition: 0.4s;
+            min-height: 500px;
+        }
+        .img-display-area img { max-width: 100%; max-height: 400px; object-fit: contain; mix-blend-mode: multiply; }
+
+        .category-badge { color: var(--accent-blue); font-weight: 800; text-transform: uppercase; font-size: 13px; letter-spacing: 1.5px; margin-bottom: 15px; display: block; }
+        .product-main-title { font-size: 3rem; font-weight: 800; color: var(--dark-blue); margin-bottom: 20px; line-height: 1.1; }
+        .price-tag { font-size: 2.2rem; font-weight: 700; color: var(--accent-blue); margin-bottom: 25px; }
+        .product-long-desc { font-size: 1.1rem; line-height: 1.8; color: #555; margin-bottom: 40px; }
+
+        .cart-action-box {
+            background: var(--soft-bg);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+        }
+        .qty-control {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            width: fit-content;
+        }
+        .qty-btn { border: none; background: transparent; padding: 10px 20px; font-weight: bold; font-size: 18px; cursor: pointer; }
+        .qty-input { width: 50px; text-align: center; border: none; font-weight: 800; outline: none; }
+
+        .add-to-cart-btn {
+            background: var(--dark-blue);
+            color: #fff;
+            border: none;
+            padding: 16px 45px;
+            border-radius: 12px;
+            font-weight: 700;
+            width: 100%;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+        .add-to-cart-btn:hover { background: var(--accent-blue); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,123,255,0.2); }
+
+        .review-section { margin-top: 80px; padding-top: 50px; border-top: 1px solid var(--border-color); }
+        .review-card { padding: 25px; border-radius: 15px; background: #fff; border: 1px solid #f1f1f1; margin-bottom: 20px; }
+        .user-icon { width: 45px; height: 45px; background: var(--dark-blue); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        .related-title { font-weight: 800; color: var(--dark-blue); margin-bottom: 40px; text-align: center; text-transform: uppercase; }
+        .rel-product-card { border: none; transition: 0.3s; background: transparent; text-align: center; }
+        .rel-img-box { background: #ebebeb; border-radius: 20px; height: 250px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+        .rel-img-box img { max-width: 70%; max-height: 70%; object-fit: contain; }
+
+        @media (max-width: 991px) {
+            .img-display-area { position: static; min-height: 350px; margin-bottom: 30px; }
+            .product-main-title { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header-nav">
+    <div class="container d-flex justify-content-between align-items-center">
+        <a href="/" class="nav-logo">
+            TECH <span>WORLD</span>
+        </a>
+
+        <nav class="nav-links d-none d-lg-block">
+            <a href="/">Bosh sahifa</a>
+            <a href="#">Barcha mahsulotlar</a>
+            <a href="#">Biz haqimizda</a>
+        </nav>
+
+        <div class="nav-right-tools">
+            <a href="#" class="auth-links d-none d-md-block">Ro'yxatdan o'tish</a>
+            <a href="#" class="btn-login-outline">Kirish</a>
+
+            <div class="icon-btn">
+                <i class="fa-regular fa-heart"></i>
+                <span class="badge-red">0</span>
+            </div>
+
+            <div class="icon-btn" onclick="toggleCart()">
+                <i class="fa fa-shopping-cart"></i>
+                <span class="badge-blue" id="cart-count">2</span>
+            </div>
+
+            <div class="icon-btn">
+                <i class="fa-regular fa-circle-user"></i>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+<div class="cart-sidebar" id="cartSidebar">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0">Savatcha</h5>
+        <i class="fa fa-times cursor-pointer" onclick="toggleCart()"></i>
+    </div>
+    <div class="cart-items-list flex-grow-1 overflow-auto">
+        <div class="cart-item">
+            <img src="{{ product.main_image.url }}" alt="">
+            <div>
+                <h6 class="mb-0 fw-bold small">{{ product.title }}</h6>
+                <p class="mb-0 text-muted small">1 x ${{ product.price }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="mt-auto pt-3 border-top">
+        <div class="d-flex justify-content-between mb-3">
+            <span class="fw-bold">Jami:</span>
+            <span class="fw-bold text-primary">$120.00</span>
+        </div>
+        <button class="btn btn-primary w-100 rounded-pill py-2">BUYURTMA BERISH</button>
+    </div>
+</div>
+
+<div class="detail-wrapper">
+    <div class="container">
+        <div class="mb-4">
+            <a href="/" class="text-decoration-none text-muted small"><i class="fa fa-home"></i> Bosh sahifa</a>
+            <span class="mx-2 text-muted">/</span>
+            <span class="small fw-bold">{{ product.category.title }}</span>
+        </div>
+
+        <div class="row g-5">
+            <div class="col-lg-6">
+                <div class="img-display-area">
+                    {% if product.main_image %}
+                        <img src="{{ product.main_image.url }}" alt="{{ product.title }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/600x600?text=No+Image" alt="No image">
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <span class="category-badge">{{ product.category.title }}</span>
+                <h1 class="product-main-title">{{ product.title }}</h1>
+
+                <div class="d-flex align-items-center mb-4">
+                    <div class="text-warning me-2">
+                        <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-half-stroke"></i>
+                    </div>
+                    <span class="text-muted small fw-bold">(4.8 / 120 xaridor fikri)</span>
+                </div>
+
+                <div class="price-tag">
+                    {% if product.discount_price %}
+                        ${{ product.discount_price }}
+                        <span class="text-muted text-decoration-line-through ms-3 fs-4">${{ product.price }}</span>
+                    {% else %}
+                        ${{ product.price }}
+                    {% endif %}
+                </div>
+
+                <div class="product-long-desc">
+                    {{ product.description|linebreaks }}
+                </div>
+
+                <div class="cart-action-box">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-4 col-sm-5">
+                            <p class="small fw-bold text-muted mb-2">MIQDOR:</p>
+                            <div class="qty-control">
+                                <button class="qty-btn" onclick="updateQty(-1)">-</button>
+                                <input type="number" id="qty-val" class="qty-input" value="1" readonly>
+                                <button class="qty-btn" onclick="updateQty(1)">+</button>
+                            </div>
+                        </div>
+                        <div class="col-md-8 col-sm-7 pt-md-4">
+                            <button class="add-to-cart-btn" onclick="toggleCart()">
+                                <i class="fa fa-cart-plus me-2"></i> Savatga qo'shish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-5 g-3">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center text-muted small fw-bold">
+                            <i class="fa fa-truck-fast me-2 text-primary fs-5"></i> BEPUL YETKAZISH
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center text-muted small fw-bold">
+                            <i class="fa fa-shield-halved me-2 text-primary fs-5"></i> 1 YIL RASMIY KAFOLAT
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="review-section">
+            <h3 class="fw-bold mb-5">Mahsulot haqida sharhlar</h3>
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="review-card">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="user-icon">A</div>
+                            <div class="ms-3">
+                                <h6 class="mb-0 fw-bold">Asrorbek Aliyev</h6>
+                                <small class="text-muted">2 kun oldin</small>
+                            </div>
+                            <div class="ms-auto text-warning small">
+                                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
+                            </div>
+                        </div>
+                        <p class="text-muted mb-0">Haqiqatdan ham sifatli ekan. Ayniqsa TECH WORLD xizmati juda tez. Tavsiya qilaman!</p>
+                    </div>
+                    <button class="btn btn-outline-dark rounded-pill px-4 mt-3">Barcha sharhlarni ko'rish</button>
+                </div>
+                <div class="col-lg-4">
+                    <div class="bg-light p-4 rounded-4 mt-lg-0 mt-4">
+                        <h5 class="fw-bold mb-3">Sizga yoqdimi?</h5>
+                        <p class="small text-muted mb-4">O'z tajribangiz bilan bo'lishing va boshqa xaridorlarga yordam bering.</p>
+                        <button class="btn btn-primary w-100 rounded-pill py-2">Sharh yozish</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="py-5" style="background-color: #fafafa;">
+    <div class="container">
+        <h3 class="related-title">O'xshash mahsulotlar</h3>
+        <div class="row g-4">
+            {% for rel in related_products %}
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'product_detail' rel.id %}" class="text-decoration-none">
+                    <div class="rel-product-card">
+                        <div class="rel-img-box">
+                            <img src="{{ rel.main_image.url }}" alt="{{ rel.title }}">
+                        </div>
+                        <h6 class="text-dark fw-bold mb-1">{{ rel.title }}</h6>
+                        <p class="text-muted mb-0">${{ rel.price }}</p>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <p class="text-center text-muted">Hozircha o'xshash mahsulotlar yo'q.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<footer class="py-5 border-top text-center mt-5">
+    <p class="text-muted small">&copy; 2026 TECH WORLD Shop. Barcha huquqlar himoyalangan.</p>
+</footer>
+
+<script>
+    function toggleCart() {
+        document.getElementById('cartSidebar').classList.toggle('active');
+        const overlay = document.getElementById('cartOverlay');
+        overlay.style.display = (overlay.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function updateQty(delta) {
+        const input = document.getElementById('qty-val');
+        let current = parseInt(input.value);
+        if (current + delta >= 1) {
+            input.value = current + delta;
+        }
+    }
+</script>
+
+</body>
+</html>
