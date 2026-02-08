@@ -154,39 +154,44 @@
                     <div class="cart-wrapper">
                         <a href="#" class="text-dark position-relative me-3">
                             <i class="fa-solid fa-cart-shopping fs-5"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" id="cart-badge" style="font-size: 10px;">2</span>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" id="cart-badge" style="font-size: 10px;">{{ cart_items|length }}</span>
                         </a>
-                        <div class="cart-dropdown">
-                            <h6 class="fw-bold mb-3">Savatcha</h6>
-                            <div class="cart-items-container">
-                                <div class="cart-item-list">
-                                    <img src="https://images.pexels.com/photos/459633/pexels-photo-459633.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Item">
-                                    <div class="cart-item-info">
-                                        <h6>MacBook Pro M3</h6>
-                                        <p>1x - <strong>$1,999.00</strong></p>
-                                    </div>
-                                    <div class="remove-item-btn"><i class="fa-solid fa-trash-can"></i></div>
-                                </div>
-                                <div class="cart-item-list">
-                                    <img src="https://images.pexels.com/photos/14101150/pexels-photo-14101150.jpeg?auto=compress&cs=tinysrgb&w=100" alt="Item">
-                                    <div class="cart-item-info">
-                                        <h6>iPhone 15 Pro</h6>
-                                        <p>1x - <strong>$1,099.00</strong></p>
-                                    </div>
-                                    <div class="remove-item-btn"><i class="fa-solid fa-trash-can"></i></div>
-                                </div>
-                            </div>
-                            <div class="cart-footer">
-                                <div class="subtotal-row">
-                                    <span>JAMI:</span>
-                                    <span class="text-primary">$3,098.00</span>
-                                </div>
-                                <div class="cart-btn-group">
-                                    <a href="#" class="btn btn-light btn-sm rounded-pill">Savat</a>
-                                    <a href="#" class="btn btn-primary btn-sm rounded-pill">To'lov</a>
-                                </div>
-                            </div>
-                        </div>
+                      <div class="cart-dropdown">
+    <h6 class="fw-bold mb-3">Savatcha</h6>
+    <div class="cart-items-container">
+
+        {% for item in cart_items %}
+        <div class="cart-item-list">
+            <img src="{{ item.product.main_image.url }}" alt="{{ item.product.title }}">
+            <div class="cart-item-info">
+                <h6>{{ item.product.title }}</h6>
+                <p>{{ item.quantity }}x - <strong>${{ item.product.price }}</strong></p>
+            </div>
+            <div class="remove-item-btn">
+                <a href="{% url 'remove_cart_item' item.id %}" class="text-secondary">
+                    <i class="fa-solid fa-trash-can"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+            <p class="text-center text-muted small py-3">Savatchangiz hozircha bo'sh</p>
+        {% endfor %}
+
+    </div>
+
+    {% if cart_items %}
+    <div class="cart-footer">
+        <div class="subtotal-row">
+            <span>JAMI:</span>
+            <span class="text-primary">${{ total_cart_price }}</span>
+        </div>
+        <div class="cart-btn-group">
+            <a href="#" class="btn btn-light btn-sm rounded-pill">Savat</a>
+            <a href="{% url 'checkout' %}" class="btn btn-primary btn-sm rounded-pill">To'lov</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
                     </div>
 
 {% if user.is_authenticated %}
@@ -272,9 +277,13 @@
                                         {% endif %}
                                     </h5>
 
-                                    <button class="btn btn-buy w-100 mt-2">
-                                        <i class="fa fa-cart-plus me-2"></i> Savatga qo'shish
-                                    </button>
+                                    <form action="{% url 'add_to_cart' product.id %}" method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn btn-buy w-100">
+                                            <i class="fa fa-cart-plus me-2"></i> Savatga qo'shish
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -299,23 +308,23 @@
                         <img src="{{ product.main_image.url }}" alt="{{product.title}}">
                     </div>
                     <div class="mt-3">
-                        <h6 class="fw-bold mb-1">{{product.title}}</h6>
-                        <p class="text-muted small mb-2">{{product.category.title}}</p>
-                        <h5 class="fw-bold">
-                            {% if product.discount_price %}
-                                <span class="text-danger">${{ product.discount_price }}</span>
-                                <small class="text-muted text-decoration-line-through ms-2" style="font-size: 0.8em; font-weight: normal;">
-                                    ${{ product.price }}
-                                </small>
-                            {% else %}
-                                ${{ product.price }}
-                            {% endif %}
-                        </h5>
-                        <div class="text-warning small">
-                            <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-half-stroke"></i> (128)
-                        </div>
-                        <button class="btn btn-buy"><i class="fa fa-cart-plus me-2"></i> Savatga qo'shish</button>
-                    </div>
+    <h6 class="fw-bold mb-1">{{product.title}}</h6>
+    <p class="text-muted small mb-2">{{product.category.title}}</p>
+    <h5 class="fw-bold">
+        </h5>
+
+    <div class="text-warning small">
+        <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star-half-stroke"></i> (128)
+    </div>
+
+    <form action="{% url 'add_to_cart' product.id %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="quantity" value="1">
+        <button type="submit" class="btn btn-buy w-100 mt-2">
+            <i class="fa fa-cart-plus me-2"></i> Savatga qo'shish
+        </button>
+    </form>
+</div>
                 </div>
             </div>
             {% endfor%}

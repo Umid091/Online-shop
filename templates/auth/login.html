@@ -2,41 +2,159 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Tizimga kirish | TECH WORLD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirish | TECH WORLD</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; display: flex; align-items: center; min-height: 100vh; }
-        .auth-card { width: 100%; max-width: 400px; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin: auto; }
-        .brand-logo { font-weight: 800; color: #0a192f; text-decoration: none; font-size: 1.5rem; display: block; text-align: center; margin-bottom: 30px; }
-        .brand-logo span { color: #007bff; }
-        .form-control { border-radius: 10px; padding: 12px; margin-bottom: 15px; }
-        .btn-primary { background: #0a192f; border: none; border-radius: 10px; padding: 12px; width: 100%; font-weight: 600; }
-        .btn-primary:hover { background: #007bff; }
+        :root {
+            --primary-dark: #0f172a;
+            --accent-color: #38bdf8;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            /* Fon uchun yumshoq gradient */
+            background: radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 100% 100%, rgba(129, 140, 248, 0.08) 0%, transparent 40%);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            padding: 45px;
+            border-radius: 28px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .brand-name {
+            font-weight: 800;
+            font-size: 1.8rem;
+            color: var(--primary-dark);
+            text-decoration: none;
+            display: block;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .brand-name span { color: var(--accent-color); }
+
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 1.5px solid #e2e8f0;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+        }
+
+        .btn-login {
+            background: var(--primary-dark);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 700;
+            width: 100%;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+
+        .btn-login:hover {
+            background: #1e293b;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15);
+        }
+
+        .error-box {
+            background-color: #fef2f2;
+            border: 1px solid #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .footer-text a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
-    <div class="auth-card">
-        <a href="/" class="brand-logo">TECH <span>WORLD</span></a>
-        <h5 class="text-center fw-bold mb-4">Xush kelibsiz!</h5>
+
+    <div class="login-card">
+        <a href="/" class="brand-name">TECH <span>WORLD</span></a>
+        <p class="text-center text-muted mb-4 small">Boshqaruv paneliga kirish</p>
 
         {% if error %}
-            <div class="alert alert-danger py-2 small text-center">{{ error }}</div>
+            <div class="error-box">
+                <i class="fas fa-circle-exclamation"></i>
+                {{ error }}
+            </div>
         {% endif %}
 
         <form method="POST">
             {% csrf_token %}
+
             <div class="mb-3">
-                <label class="form-label small fw-bold">Username</label>
-                <input type="text" name="username" class="form-control" required>
+                <label class="form-label">Username</label>
+                <div class="input-group">
+                    <input type="text" name="username" class="form-control" placeholder="Loginni kiriting" required>
+                </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label small fw-bold">Parol</label>
-                <input type="password" name="password" class="form-control" required>
+
+            <div class="mb-4">
+                <label class="form-label">Parol</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
             </div>
-            <button type="submit" class="btn btn-primary">KIRISH</button>
+
+            <button type="submit" class="btn btn-login">
+                KIRISH <i class="fas fa-arrow-right ms-2"></i>
+            </button>
         </form>
 
-        <p class="text-center mt-4 mb-0 small text-muted">Hali ro'yxatdan o'tmaganmisiz? <a href="{% url 'register' %}" class="text-primary text-decoration-none fw-bold">Yangi hisob ochish</a></p>
+        <div class="footer-text">
+            Sizda profil yo'qmi? <a href="{% url 'register' %}">Ro'yxatdan o'ting</a>
+        </div>
     </div>
+
 </body>
 </html>

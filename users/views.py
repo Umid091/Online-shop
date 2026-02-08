@@ -8,7 +8,14 @@ import random
 from django.conf import settings
 from django.core.mail import send_mail
 from .models import User
+from django.contrib.auth import logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 
+from django.views import View
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from .models import Product, User
+from products.models import  Product, Category, Banner
 
 
 class RegisterView(View):
@@ -95,43 +102,52 @@ class EmailVerifyView(View):
         return redirect('login')
 
 
-from django.views import View
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
-from .models import Product, User
 
 
-# 1. Login qismi
+
+
 class LoginView(View):
     def get(self, request):
         return render(request, 'auth/login.html')
 
     def post(self, request):
-        u = request.POST.get('username')
-        p = request.POST.get('password')
-        user = authenticate(request, username=u, password=p)
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
-        if user:
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
             login(request, user)
-            if user.role == User.Role.ADMIN:
+
+
+            if str(user.role).upper() == "ADMIN":
                 return redirect('admin_dashboard')
-            return redirect('index')
-        return render(request, 'auth/login.html', {"error": "Xato!"})
+            else:
+                return redirect('index')
+
+        return render(request, 'auth/login.html', {
+            "error": "Username yoki parol xato kiritildi!"
+        })
 
 
 class AdminDashboardView(View):
     def get(self, request):
-        if not request.user.is_authenticated or request.user.role != User.Role.ADMIN:
-            return redirect('login')
-
         products = Product.objects.all().order_by('-id')
-        return render(request, 'admin/dashboard.html', {'products': products})
+        users = User.objects.all().order_by('-id')
+        order_items = OrderItem.objects.all().order_by('-id')  # Oxirgi sotuvlar
 
+        # Statistika uchun
+        total_sales = sum(item.get_total_price() for item in order_items) if hasattr(order_items,
+                                                                                     'get_total_price') else 0
 
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views import View
-from django.shortcuts import render, redirect
-from .models import User
+        context = {
+            'products': products,
+            'users': users,
+            'order_items': order_items,
+            'total_sales': total_sales,
+        }
+        return render(request, 'admin/admin_dashboard.html', context)
+
 
 
 class ProfileView(LoginRequiredMixin, View):
@@ -151,3 +167,94 @@ class ProfileView(LoginRequiredMixin, View):
 
         user.save()
         return redirect('profile')
+
+
+
+
+
+class admin_logaut(View):
+    def get(self,request):
+        logout(request)
+        return redirect('login')
+
+
+def add_to_cart(request, id):
+    product = Product.objects.get(id=id)
+
+    quantity_raw = request.POST.get("quantity", 1)
+    quantity = int(quantity_raw)
+
+    cart_item = Cart.objects.filter(user=request.user, product=product).first()
+    if cart_item:
+        cart_item.quantity += quantity
+        cart_item.save()
+    else:
+        Cart.objects.create(
+            user=request.user,
+            product=product,
+            quantity=quantity
+        )
+
+    return redirect('index')
+
+def checkout(request):
+    cart_items = Cart.objects.filter(user=request.user)
+    if not cart_items:
+        return redirect('index')
+
+    total_price = sum(item.total_price for item in cart_items)
+
+    if request.user.balance < total_price:
+        return redirect('index')
+
+    order = Order.objects.create(
+        user=request.user
+    )
+
+    for item in cart_items:
+        OrderItem.objects.create(
+            product=item.product,
+            order=order,
+            quantity=item.quantity,
+            price=item.product.price
+        )
+
+        item.product.count -= item.quantity  # Agar modelda 'count' bo'lsa
+        item.product.save()
+
+    request.user.balance -= total_price
+    request.user.save()
+
+    cart_items.delete()
+
+    return redirect('index')
+
+
+def index(request):
+    products = Product.objects.all().order_by('-id')
+    categories = Category.objects.all()
+    banner = Banner.objects.first()
+
+    cart_items = []
+    total_cart_price = 0
+
+    if request.user.is_authenticated:
+        cart_items = Cart.objects.filter(user=request.user)
+        total_cart_price = sum(item.product.price * item.quantity for item in cart_items)
+
+    context = {
+        'products': products,
+        'categories': categories,
+        'banner': banner,
+        'cart_items': cart_items,
+        'total_cart_price': total_cart_price,
+    }
+    return render(request, 'index.html', context)
+
+
+def remove_cart_item(request, id):
+    if request.user.is_authenticated:
+        Cart.objects.filter(id=id, user=request.user).delete()
+
+    return redirect('index')
+
