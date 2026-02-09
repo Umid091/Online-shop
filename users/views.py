@@ -136,17 +136,17 @@ class AdminDashboardView(View):
     def get(self, request):
         products = Product.objects.all().order_by('-id')
         users = User.objects.all().order_by('-id')
-        order_items = OrderItem.objects.all().order_by('-id')  # Oxirgi sotuvlar
+        order_items = OrderItem.objects.all().order_by('-id')
 
-        # Statistika uchun
-        total_sales = sum(item.get_total_price() for item in order_items) if hasattr(order_items,
-                                                                                     'get_total_price') else 0
+        # Har bir itemning get_total_price() metodidan foydalanib jami summani hisoblaymiz
+        total_sales = sum(item.get_total_price() for item in order_items)
 
         context = {
             'products': products,
             'users': users,
             'order_items': order_items,
             'total_sales': total_sales,
+            'categories_count': Category.objects.count(),  # Kategoriya soni
         }
         return render(request, 'admin/admin_dashboard.html', context)
 

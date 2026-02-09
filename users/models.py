@@ -77,6 +77,10 @@ class OrderItem(models.Model):
     quantity = models.IntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
+    def get_total_price(self):
+        price = self.product.discount_price if self.product.discount_price else self.product.price
+        return price * self.quantity
+
     def get_total(self):
         return self.quantity * self.price
 

@@ -29,10 +29,14 @@ class Product(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        if self.price and self.precent:
-            self.discount_price = self.price - (self.price * self.precent / 100)
+        if self.price:
+            if self.precent and float(self.precent) > 0:
+                price = float(self.price)
+                percent = float(self.precent)
+                self.discount_price = price - (price * percent / 100)
+            else:
+                self.discount_price = self.price
         super().save(*args, **kwargs)
-
 
 
 class ProductImage(models.Model):

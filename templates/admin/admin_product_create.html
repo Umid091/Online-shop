@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yangi Mahsulot | TECH WORLD</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f7f6; color: #333; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 50px 0; }
+
+        /* Oq karta uslubi */
+        .content-card {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 35px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .form-label {
+            color: #5f6368;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* Inputlar dizayni */
+        .form-control, .form-select {
+            background-color: #f8f9fa;
+            border: 1px solid #dcdcdc;
+            color: #333;
+            border-radius: 8px;
+            padding: 12px;
+            transition: 0.2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: #fff;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+            color: #333;
+        }
+
+        /* Tugmalar */
+        .btn-create {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-create:hover {
+            background-color: #1557b0;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-cancel {
+            background-color: #fff;
+            color: #5f6368;
+            border: 1px solid #dcdcdc;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .btn-cancel:hover {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .section-title {
+            color: #202124;
+            font-weight: 700;
+            border-bottom: 2px solid #f1f1f1;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="content-card">
+                    <h4 class="section-title"><i class="fas fa-box-open me-2 text-primary"></i> Yangi mahsulot qo'shish</h4>
+
+                    <form action="{% url 'admin_product_create' %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row g-4">
+                            <div class="col-md-8">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label">Mahsulot nomi</label>
+                                        <input type="text" name="title" class="form-control" placeholder="Masalan: iPhone 15 Pro Max" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Brend</label>
+                                        <input type="text" name="brand" class="form-control" placeholder="Apple" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Kategoriya</label>
+                                        <select name="category" class="form-select" required>
+                                            <option value="" disabled selected>Kategoriyani tanlang</option>
+                                            {% for cat in categories %}
+                                                <option value="{{ cat.id }}">{{ cat.title }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Tavsif (desc)</label>
+                                        <textarea name="desc" rows="6" class="form-control" placeholder="Mahsulot haqida batafsil ma'lumot..." required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label">Asosiy narx ($)</label>
+                                        <input type="number" step="0.01" name="price" class="form-control" placeholder="0.00" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Chegirma (%)</label>
+                                        <input type="number" name="precent" class="form-control" value="0" min="0" max="100" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Ombordagi soni</label>
+                                        <input type="number" name="stock" class="form-control" placeholder="0" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Mahsulot rasmi</label>
+                                        <input type="file" name="main_image" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 border-top pt-4 mt-4 d-flex justify-content-end gap-3">
+                                <a href="{% url 'admin_dashboard' %}" class="btn-cancel">Bekor qilish</a>
+                                <button type="submit" class="btn btn-create px-5">Saqlash</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
