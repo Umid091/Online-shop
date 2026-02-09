@@ -5,10 +5,12 @@ from unicodedata import category
 from .models import *
 from django.template.context_processors import request
 
+from users.models import Cart
+
 class HomeView(View):
-    def get(self, request): # To'g'ri yozilishi: request
+    def get(self, request):
         products = Product.objects.all().order_by('-id')[:4]
-        categories = Category.objects.all() # Faqat 3 ta kategoriya
+        categories = Category.objects.all()
         banner = Banner.objects.filter(is_active=True).first()
         return render(request, 'index.html', { # Tepada nima yozilsa, bu yerda ham o'sha bo'lishi shart
             'products': products,
@@ -18,10 +20,20 @@ class HomeView(View):
 
 
 class Product_all_view(View):
-    def get(self,request):
-        products=Product.objects.all()
-        return render(request, 'products_all.html',{
-            'products':products
+    def get(self, request):
+        products = Product.objects.all()
+
+        # Savatcha qismi (Buni qo'shish shart!)
+        cart_items = []
+        total_cart_price = 0
+        if request.user.is_authenticated:
+            cart_items = Cart.objects.filter(user=request.user)
+            total_cart_price = sum(item.product.price * item.quantity for item in cart_items)
+
+        return render(request, 'products_all.html', {
+            'products': products,
+            'cart_items': cart_items,
+            'total_cart_price': total_cart_price
         })
 
 class About(View):
@@ -31,12 +43,22 @@ class About(View):
 
 
 class ProductDetails(View):
-    def get(self, request,  id):
-        product=Product.objects.get(id=id)
-        related_products=Product.objects.filter(category=product.category).exclude(id=product.id).order_by('-id')[:3]
+    def get(self, request, id):
+        product = Product.objects.get(id=id)
+        related_products = Product.objects.filter(category=product.category).exclude(id=product.id).order_by('-id')[:3]
+
+
+        cart_items = []
+        total_cart_price = 0
+        if request.user.is_authenticated:
+            cart_items = Cart.objects.filter(user=request.user)
+            total_cart_price = sum(item.product.price * item.quantity for item in cart_items)
+        # ---------------------------------
+
         return render(request, 'product_detail.html', {
             'product': product,
-            'related_products': related_products
+            'related_products': related_products,
+            'cart_items': cart_items,
+            'total_cart_price': total_cart_price
         })
-
 

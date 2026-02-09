@@ -16,7 +16,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from .models import Product, User
 from products.models import  Product, Category, Banner
-
+from django.contrib import messages
 
 class RegisterView(View):
     def get(self, request):
@@ -179,9 +179,11 @@ class admin_logaut(View):
 
 
 def add_to_cart(request, id):
+    if not request.user.is_authenticated:
+        return redirect('/auth/login')
     product = Product.objects.get(id=id)
 
-    quantity_raw = request.POST.get("quantity", 1)
+    quantity_raw = request.POST.get("quantity")
     quantity = int(quantity_raw)
 
     cart_item = Cart.objects.filter(user=request.user, product=product).first()
@@ -197,38 +199,71 @@ def add_to_cart(request, id):
 
     return redirect('index')
 
+
+from django.shortcuts import redirect, render
+from django.db import transaction
+from .models import Cart, Order, OrderItem
+
+
 def checkout(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
     cart_items = Cart.objects.filter(user=request.user)
-    if not cart_items:
+    if not cart_items.exists():
+        print("XATO: Savat bo'sh!")
         return redirect('index')
 
-    total_price = sum(item.total_price for item in cart_items)
+    total_sum = sum(item.total_price for item in cart_items)
 
-    if request.user.balance < total_price:
+    # Balansni tekshirishda xatolikni oldini olish
+    user_balance = request.user.balance if request.user.balance is not None else 0
+
+    if user_balance < total_sum:
+        messages.error(request, "Mablag'ingiz yetarli emas!")
         return redirect('index')
 
-    order = Order.objects.create(
-        user=request.user
-    )
+    try:
+        with transaction.atomic():
+            order = Order.objects.create(user=request.user)
 
-    for item in cart_items:
-        OrderItem.objects.create(
-            product=item.product,
-            order=order,
-            quantity=item.quantity,
-            price=item.product.price
-        )
+            for item in cart_items:
+                real_price = item.product.discount_price if item.product.precent > 0 else item.product.price
 
-        item.product.count -= item.quantity  # Agar modelda 'count' bo'lsa
-        item.product.save()
+                # Ombor zaxirasini tekshirish
+                if item.product.stock < item.quantity:
+                    print(f"XATO: {item.product.title} omborda yetarli emas!")
+                    raise Exception(f"{item.product.title} yetarli emas")
 
-    request.user.balance -= total_price
-    request.user.save()
+                OrderItem.objects.create(
+                    product=item.product,
+                    order=order,
+                    quantity=item.quantity,
+                    price=real_price
+                )
 
-    cart_items.delete()
+                item.product.stock -= item.quantity
+                item.product.save()
 
-    return redirect('index')
+            request.user.balance -= total_sum
+            request.user.save()
+            cart_items.delete()
 
+        return redirect('my_orders')
+
+    except Exception as e:
+        messages.error(request, f"Xatolik: {str(e)}")
+        return redirect('index')
+    except Exception as e:
+        return redirect('index')
+
+
+def my_orders(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'my_orders.html', {'orders': orders})
 
 def index(request):
     products = Product.objects.all().order_by('-id')

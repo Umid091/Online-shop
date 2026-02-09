@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mening xaridlarim | TECH WORLD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --dark-blue: #0a192f;
+            --accent-blue: #007bff;
+            --soft-bg: #f8f9fa;
+            --border-color: #eee;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fcfcfc;
+            color: #333;
+        }
+
+        /* Navbar senga mosh tushishi uchun */
+        .header-nav {
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            background: #fff;
+            margin-bottom: 40px;
+        }
+        .nav-logo { font-weight: 800; color: var(--dark-blue); font-size: 1.5rem; text-decoration: none; }
+        .nav-logo span { color: var(--accent-blue); }
+
+        /* Order Card Style */
+        .order-card {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            margin-bottom: 30px;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        .order-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+
+        .order-header {
+            background: var(--soft-bg);
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-id { font-weight: 800; color: var(--dark-blue); }
+        .order-date { font-size: 0.9rem; color: #666; font-weight: 600; }
+
+        .product-img-box {
+            width: 70px;
+            height: 70px;
+            background: #f1f1f1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+        }
+        .product-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .order-status-badge {
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: #e7f3ff;
+            color: var(--accent-blue);
+        }
+
+        .total-section {
+            padding: 20px 30px;
+            background: #fff;
+            border-top: 1px dashed #ddd;
+            text-align: right;
+        }
+        .total-price-label { color: #888; font-size: 0.9rem; margin-right: 10px; }
+        .total-price-value { font-size: 1.5rem; font-weight: 800; color: var(--accent-blue); }
+
+        .empty-state { text-align: center; padding: 100px 0; }
+        .btn-back-home {
+            background: var(--dark-blue);
+            color: #fff;
+            padding: 12px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-back-home:hover { background: var(--accent-blue); color: #fff; }
+    </style>
+</head>
+<body>
+
+<header class="header-nav">
+    <div class="container d-flex justify-content-between align-items-center">
+        <a href="/" class="nav-logo">TECH <span>WORLD</span></a>
+        <a href="/" class="text-decoration-none text-dark fw-bold small"><i class="fa fa-arrow-left me-2"></i> Do'konga qaytish</a>
+    </div>
+</header>
+
+<div class="container mb-5">
+    <div class="mb-5">
+        <h1 class="fw-800" style="font-weight: 800; color: var(--dark-blue);">Mening buyurtmalarim</h1>
+        <p class="text-muted">Barcha amalga oshirilgan xaridlar ro'yxati</p>
+    </div>
+
+    {% for order in orders %}
+    <div class="order-card">
+        <div class="order-header">
+            <div>
+                <span class="order-id">ID: #TW-{{ order.id }}</span>
+                <span class="ms-3 order-date"><i class="fa-regular fa-calendar-check me-1"></i> {{ order.created_at|date:"d.m.Y | H:i" }}</span>
+            </div>
+            <span class="order-status-badge">Muvaffaqiyatli</span>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead class="text-muted small text-uppercase" style="background: #fafafa; font-size: 11px;">
+                        <tr>
+                            <th class="px-4 py-3">Mahsulot</th>
+                            <th class="py-3 text-center">Miqdor</th>
+                            <th class="py-3 text-end">sum</th>
+                            <th class="px-4 py-3 text-end">Jami</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.order_items.all %}
+                        <tr style="border-bottom: 1px solid #f9f9f9;">
+                            <td class="px-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="product-img-box">
+                                        <img src="{{ item.product.main_image.url }}" alt="">
+                                    </div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-0 fw-bold small">{{ item.product.title }}</h6>
+                                        <span class="text-muted" style="font-size: 12px;">{{ item.product.category.title }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center fw-bold">{{ item.quantity }}</td>
+                            <td class="text-end text-muted small">${{ item.price }}</td>
+                            <td class="px-4 text-end fw-bold text-dark">${{ item.get_total }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="total-section">
+            <span class="total-price-label">Umumiy to'langan summa:</span>
+            <span class="total-price-value">${{ order.get_total_price }}</span>
+            </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <div class="mb-4">
+            <i class="fa fa-shopping-bag fa-5x" style="color: #eee;"></i>
+        </div>
+        <h3 class="fw-bold">Buyurtmalar topilmadi</h3>
+        <p class="text-muted mb-4">Siz hali birorta ham xaridni amalga oshirmadingiz.</p>
+        <a href="/" class="btn-back-home">Xarid qilishni boshlash</a>
+    </div>
+    {% endfor %}
+</div>
+
+<footer class="py-5 text-center border-top mt-5">
+    <p class="text-muted small">&copy; 2026 TECH WORLD Shop. Barcha huquqlar himoyalangan.</p>
+</footer>
+
+</body>
+</html>
