@@ -146,9 +146,15 @@
                     <a href="{% url 'register' %}" class="nav-link small">Ro'yxatdan o'tish</a>
                     <a href="{% url 'login' %}" class="btn btn-outline-dark btn-sm rounded-pill px-3 me-3">Kirish</a>
 
-                    <a href="#" class="text-dark position-relative me-3">
+                    <a href="{% url 'my_wishlist' %}" class="text-dark position-relative me-3">
                         <i class="fa-regular fa-heart fs-5"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">0</span>
+                        {% if user.is_authenticated %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+                                {{ user.wishlist.count }}
+                            </span>
+                        {% else %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">0</span>
+                        {% endif %}
                     </a>
 
                     <div class="cart-wrapper">
@@ -202,6 +208,12 @@
                     </div>
 
                 {% if user.is_authenticated %}
+                    <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link text-danger text-decoration-none p-0 me-2" title="Chiqish">
+                            <i class="fa-solid fa-right-from-bracket fs-5"></i>
+                        </button>
+                    </form>
                     <a href="{% url 'profile' %}" class="text-dark ms-3">
                         {% if user.image %}
                             <img src="{{ user.image.url }}" class="rounded-circle" style="width: 35px; height: 35px; object-fit: cover; border: 1px solid #007bff;">
@@ -210,8 +222,8 @@
                         {% endif %}
                     </a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-outline-dark btn-sm rounded-pill px-3 me-2">Kirish</a>
-                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm rounded-pill px-3">Ro'yxatdan o'tish</a>
+<!--                    <a href="{% url 'login' %}" class="btn btn-outline-dark btn-sm rounded-pill px-3 me-2">Kirish</a>-->
+<!--                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm rounded-pill px-3">Ro'yxatdan o'tish</a>-->
                 {% endif %}                </div>
                         </div>
         </div>
@@ -261,13 +273,24 @@
                                 {% endif %}
 
                                 <div class="img-wrapper">
-                                    <div class="wish-list-btn"><i class="fa-regular fa-heart"></i></div>
-                                    {% if product.main_image %}
-                                        <img src="{{ product.main_image.url }}" alt="{{ product.title }}">
-                                    {% else %}
-                                        <img src="https://via.placeholder.com/400" alt="No image">
-                                    {% endif %}
-                                </div>
+    <a href="{% url 'toggle_wishlist' product.id %}" class="wish-list-btn text-decoration-none">
+        {% if user.is_authenticated %}
+            {% if product.id in wishlist_product_ids %}
+                <i class="fa-solid fa-heart text-danger"></i>
+            {% else %}
+                <i class="fa-regular fa-heart"></i>
+            {% endif %}
+        {% else %}
+            <i class="fa-regular fa-heart"></i>
+        {% endif %}
+    </a>
+
+    {% if product.main_image %}
+        <img src="{{ product.main_image.url }}" alt="{{ product.title }}">
+    {% else %}
+        <img src="https://via.placeholder.com/400" alt="No image">
+    {% endif %}
+</div>
 
                                 <div class="mt-3 text-center">
                                     <h6 class="fw-bold mb-1">{{ product.title }}</h6>
@@ -311,10 +334,20 @@
                 <div class="product-card">
                     <span class="status-badge bg-primary">New</span>
                     <div class="img-wrapper">
-                        <div class="wish-list-btn"><i class="fa-regular fa-heart"></i></div>
-                        <img src="{{ product.main_image.url }}" alt="{{product.title}}">
-                    </div>
-                    <div class="mt-3">
+                                        <a href="{% url 'toggle_wishlist' product.id %}" class="wish-list-btn text-decoration-none">
+                                            {% if user.is_authenticated %}
+                                                {% if product.id in wishlist_product_ids %}
+                                                    <i class="fa-solid fa-heart text-danger"></i>
+                                                {% else %}
+                                                    <i class="fa-regular fa-heart"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <i class="fa-regular fa-heart"></i>
+                                            {% endif %}
+                                        </a>
+                                        <img src="{{ product.main_image.url }}" alt="{{product.title}}">
+                                    </div>
+                                <div class="mt-3">
                         <h6 class="fw-bold mb-1">{{product.title}}</h6>
                         <p class="text-muted small mb-2">{{product.category.title}}</p>
                         <h5 class="fw-bold">

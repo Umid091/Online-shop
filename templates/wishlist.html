@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saralanganlar | TECH WORLD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --dark-blue: #0a192f;
+            --accent-blue: #007bff;
+            --soft-bg: #f8f9fa;
+            --border-color: #eee;
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: #fff; color: #333; }
+
+        /* --- NAVBAR (Detail sahifangiz bilan bir xil) --- */
+        .header-nav {
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .nav-logo { font-weight: 800; color: var(--dark-blue); font-size: 1.5rem; text-decoration: none; display: flex; align-items: center; }
+        .nav-logo span { color: var(--accent-blue); }
+        .nav-links a { color: #333; font-weight: 600; margin: 0 15px; text-decoration: none; font-size: 14px; transition: 0.3s; }
+        .nav-links a:hover { color: var(--accent-blue); }
+        .nav-right-tools { display: flex; align-items: center; gap: 20px; }
+
+        .icon-btn { position: relative; cursor: pointer; color: #333; font-size: 1.4rem; text-decoration: none; }
+        .badge-red {
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            background: #ff4757;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            font-weight: 800;
+        }
+
+        /* --- WISHLIST CONTENT --- */
+        .wishlist-wrapper { padding: 60px 0; min-height: 70vh; }
+        .wish-title { font-weight: 800; color: var(--dark-blue); margin-bottom: 40px; text-transform: uppercase; }
+
+        .wish-card {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            transition: 0.4s;
+            position: relative;
+            height: 100%;
+        }
+        .wish-card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+
+        .wish-img-box {
+            background: #ebebeb;
+            border-radius: 15px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .wish-img-box img { max-width: 80%; max-height: 80%; object-fit: contain; mix-blend-mode: multiply; }
+
+        .remove-wish-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #fff;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ff4757;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-decoration: none;
+            z-index: 10;
+        }
+        .remove-wish-btn:hover { background: #ff4757; color: #fff; }
+
+        .wish-info h5 { font-weight: 700; color: var(--dark-blue); font-size: 1.1rem; margin-bottom: 8px; }
+        .wish-price { font-weight: 800; color: var(--accent-blue); font-size: 1.2rem; margin-bottom: 15px; }
+
+        .btn-view-detail {
+            background: var(--dark-blue);
+            color: #fff;
+            border-radius: 10px;
+            text-align: center;
+            padding: 10px;
+            text-decoration: none;
+            display: block;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-view-detail:hover { background: var(--accent-blue); color: #fff; }
+
+        .empty-state { text-align: center; padding: 100px 0; }
+        .empty-state i { font-size: 4rem; color: #ddd; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<header class="header-nav">
+    <div class="container d-flex justify-content-between align-items-center">
+        <a href="/" class="nav-logo">TECH <span>WORLD</span></a>
+        
+        <nav class="nav-links d-none d-lg-block">
+            <a href="/">Bosh sahifa</a>
+            <a href="#">Barcha mahsulotlar</a>
+            <a href="#">Biz haqimizda</a>
+        </nav>
+
+        <div class="nav-right-tools">
+            <a href="{% url 'my_wishlist' %}" class="icon-btn">
+                <i class="fa-solid fa-heart text-danger"></i>
+                <span class="badge-red">{% if user.is_authenticated %}{{ user.wishlist.count }}{% else %}0{% endif %}</span>
+            </a>
+            <div class="icon-btn">
+                <i class="fa-regular fa-circle-user"></i>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="wishlist-wrapper">
+    <div class="container">
+        <div class="mb-4">
+            <a href="/" class="text-decoration-none text-muted small"><i class="fa fa-home"></i> Bosh sahifa</a>
+            <span class="mx-2 text-muted">/</span>
+            <span class="small fw-bold">Saralanganlar</span>
+        </div>
+
+        <h2 class="wish-title">Saralangan Mahsulotlar</h2>
+
+        <div class="row g-4">
+            {% for item in wishlist_items %}
+            <div class="col-lg-3 col-md-6">
+                <div class="wish-card">
+                    <a href="{% url 'toggle_wishlist' item.product.id %}" class="remove-wish-btn">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </a>
+
+                    <div class="wish-img-box">
+                        <img src="{{ item.product.main_image.url }}" alt="{{ item.product.title }}">
+                    </div>
+
+                    <div class="wish-info">
+                        <h5>{{ item.product.title }}</h5>
+                        <div class="wish-price">
+                            {% if item.product.discount_price %}
+                                ${{ item.product.discount_price }}
+                            {% else %}
+                                ${{ item.product.price }}
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'product_detail' item.product.id %}" class="btn-view-detail">
+                            Ko'rish
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="fa-regular fa-heart"></i>
+                    <h3 class="fw-bold">Ro'yxat bo'sh</h3>
+                    <p class="text-muted">Sizga yoqqan mahsulotlarni keyinroq sotib olish uchun shu yerda saqlashingiz mumkin.</p>
+                    <a href="/" class="btn btn-primary rounded-pill px-5 py-2 mt-3 fw-bold text-decoration-none">Do'konga qaytish</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<footer class="py-5 border-top text-center mt-5">
+    <p class="text-muted small">&copy; 2026 TECH WORLD Shop. Barcha huquqlar himoyalangan.</p>
+</footer>
+
+</body>
+</html>

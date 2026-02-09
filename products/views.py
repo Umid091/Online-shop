@@ -4,7 +4,7 @@ from unicodedata import category
 
 from .models import *
 from django.template.context_processors import request
-
+from django.db.models import Q
 from users.models import Cart
 
 class HomeView(View):
@@ -19,11 +19,24 @@ class HomeView(View):
         })
 
 
+  # Buni eng tepaga qo'shing
+from django.views import View
+
+
 class Product_all_view(View):
     def get(self, request):
-        products = Product.objects.all()
+        # 1. Qidiruv so'zini olish
+        query = request.GET.get('q')
 
-        # Savatcha qismi (Buni qo'shish shart!)
+        # 2. Mahsulotlarni qidiruvga qarab filtrlash
+        if query:
+            products = Product.objects.filter(
+                Q(title__icontains=query) | Q(desc__icontains=query)
+            )
+        else:
+            products = Product.objects.all()
+
+        # Savatcha qismi (O'zgarishsiz qoldi)
         cart_items = []
         total_cart_price = 0
         if request.user.is_authenticated:
@@ -33,7 +46,8 @@ class Product_all_view(View):
         return render(request, 'products_all.html', {
             'products': products,
             'cart_items': cart_items,
-            'total_cart_price': total_cart_price
+            'total_cart_price': total_cart_price,
+            'query': query  # Bu qidirilgan so'zni inputda saqlab turish uchun kerak
         })
 
 class About(View):
@@ -61,4 +75,8 @@ class ProductDetails(View):
             'cart_items': cart_items,
             'total_cart_price': total_cart_price
         })
+
+
+
+
 

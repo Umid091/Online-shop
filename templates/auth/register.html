@@ -6,35 +6,82 @@
     <title>Ro'yxatdan o'tish | TECH WORLD</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; display: flex; align-items: center; min-height: 100vh; }
-        .auth-card { width: 100%; max-width: 450px; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin: auto; }
-        .brand-logo { font-weight: 800; color: #0a192f; text-decoration: none; font-size: 1.5rem; display: block; text-align: center; margin-bottom: 30px; }
+        .auth-card { width: 100%; max-width: 450px; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); margin: auto; }
+        .brand-logo { font-weight: 800; color: #0a192f; text-decoration: none; font-size: 1.8rem; display: block; text-align: center; margin-bottom: 30px; }
         .brand-logo span { color: #007bff; }
-        .form-control { border-radius: 10px; padding: 12px; border: 1px solid #eee; margin-bottom: 15px; }
-        .btn-primary { background: #007bff; border: none; border-radius: 10px; padding: 12px; font-weight: 600; width: 100%; }
-        .error-msg { color: #dc3545; font-size: 13px; margin-bottom: 15px; text-align: center; }
+
+        .form-control { border-radius: 12px; padding: 12px 15px; border: 1px solid #e0e0e0; margin-bottom: 15px; transition: 0.3s; }
+        .form-control:focus { border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.1); }
+
+        .btn-primary { background: #007bff; border: none; border-radius: 12px; padding: 14px; font-weight: 700; width: 100%; transition: 0.3s; }
+        .btn-primary:hover { background: #0056b3; transform: translateY(-2px); }
+
+        /* Xatolik xabari uchun chiroyli stil */
+        .error-alert {
+            background-color: #fff5f5;
+            color: #e53e3e;
+            border-left: 4px solid #e53e3e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
     </style>
 </head>
 <body>
     <div class="auth-card">
         <a href="/" class="brand-logo">TECH <span>WORLD</span></a>
-        <h5 class="text-center fw-bold mb-4">Hisob yaratish</h5>
+        <h5 class="text-center fw-bold mb-4">Yangi hisob yaratish</h5>
 
         {% if error %}
-            <div class="error-msg">{{ error }}</div>
+            <div class="error-alert">
+                <i class="fa-solid fa-circle-exclamation me-3"></i>
+                <span>{{ error }}</span>
+            </div>
         {% endif %}
 
-        <form method="POST">
+        <form action="{% url 'register' %}" method="POST">
             {% csrf_token %}
-            <input type="text" name="username" class="form-control" placeholder="Username" required>
-            <input type="email" name="email" class="form-control" placeholder="Email manzilingiz" required>
-            <input type="password" name="password" class="form-control" placeholder="Parol" required>
-            <input type="password" name="confirm_password" class="form-control" placeholder="Parolni tasdiqlang" required>
-            <button type="submit" class="btn btn-primary mt-2">DAVOM ETISH</button>
+            <div class="mb-1">
+                <label class="small fw-bold text-muted ms-2">Username</label>
+                <input type="text" name="username" class="form-control" placeholder="Masalan: tech_user" value="{{ request.POST.username }}" required>
+            </div>
+
+            <div class="mb-1">
+                <label class="small fw-bold text-muted ms-2">Email</label>
+                <input type="email" name="email" class="form-control" placeholder="Email manzilingiz" value="{{ request.POST.email }}" required>
+            </div>
+
+            <div class="mb-1">
+                <label class="small fw-bold text-muted ms-2">Parol</label>
+                <input type="password" name="password" class="form-control" placeholder="Kamida 8 ta belgi" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="small fw-bold text-muted ms-2">Parolni tasdiqlash</label>
+                <input type="password" name="confirm_password" class="form-control" placeholder="Parolni qayta kiriting" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                DAVOM ETISH <i class="fa-solid fa-arrow-right ms-2"></i>
+            </button>
         </form>
 
-        <p class="text-center mt-4 mb-0 small text-muted">Akkuntingiz bormi? <a href="{% url 'login' %}" class="text-primary text-decoration-none fw-bold">Kirish</a></p>
+        <p class="text-center mt-4 mb-0 small text-muted">
+            Akkuntingiz bormi? <a href="{% url 'login' %}" class="text-primary text-decoration-none fw-bold">Kirish</a>
+        </p>
     </div>
 </body>
 </html>

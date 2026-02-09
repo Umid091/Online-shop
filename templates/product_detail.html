@@ -9,6 +9,39 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        /* Wishlist tugmasi dizayni */
+.wish-detail-btn {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    background: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    color: var(--dark-blue);
+    font-size: 1.2rem;
+    transition: 0.3s;
+    z-index: 5;
+    text-decoration: none;
+}
+.wish-detail-btn:hover { transform: scale(1.1); color: #ff4757; }
+
+/* Badge qizil rangda bo'lishi uchun */
+.badge-red {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background: #ff4757;
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 50%;
+    font-weight: 800;
+}
         :root {
             --dark-blue: #0a192f;
             --accent-blue: #007bff;
@@ -170,18 +203,18 @@
 
         <nav class="nav-links d-none d-lg-block">
             <a href="/">Bosh sahifa</a>
-            <a href="#">Barcha mahsulotlar</a>
-            <a href="#">Biz haqimizda</a>
+            <a href="{% url 'products_all' %}">Barcha mahsulotlar</a>
+            <a href="{% url 'about' %}">Biz haqimizda</a>
         </nav>
 
         <div class="nav-right-tools">
-            <a href="#" class="auth-links d-none d-md-block">Ro'yxatdan o'tish</a>
-            <a href="#" class="btn-login-outline">Kirish</a>
+            <a href="{% url 'register' %}" class="auth-links d-none d-md-block">Ro'yxatdan o'tish</a>
+            <a href="{% url 'login' %}" class="btn-login-outline">Kirish</a>
 
-            <div class="icon-btn">
+                       <a href="{% url 'my_wishlist' %}" class="icon-btn text-decoration-none">
                 <i class="fa-regular fa-heart"></i>
-                <span class="badge-red">0</span>
-            </div>
+                <span class="badge-red">{% if user.is_authenticated %}{{ user.wishlist.count }}{% else %}0{% endif %}</span>
+            </a>
 
             <div class="cart-wrapper">
                 <div class="icon-btn">
@@ -229,9 +262,13 @@
                 </div>
             </div>
 
-            <div class="icon-btn">
-                <i class="fa-regular fa-circle-user"></i>
-            </div>
+            <a href="{% url 'profile' %}" class="icon-btn text-decoration-none" title="Profilim">
+    {% if user.is_authenticated  %}
+        <img src="{{ user.userprofile.image.url }}" alt="User" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
+    {% else %}
+        <i class="fa-regular fa-circle-user"></i>
+    {% endif %}
+</a>
         </div>
     </div>
 </header>
@@ -315,34 +352,59 @@
             </div>
         </div>
 
-        <div class="review-section">
-            <h3 class="fw-bold mb-5">Mahsulot haqida sharhlar</h3>
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="review-card">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="user-icon">A</div>
-                            <div class="ms-3">
-                                <h6 class="mb-0 fw-bold">Asrorbek Aliyev</h6>
-                                <small class="text-muted">2 kun oldin</small>
-                            </div>
-                            <div class="ms-auto text-warning small">
-                                <i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i><i class="fa fa-star"></i>
-                            </div>
+       <div class="review-section">
+    <h3 class="fw-bold mb-5">Mahsulot haqida sharhlar</h3>
+    <div class="row">
+        <div class="col-lg-8">
+            {% for comment in product.comments.all %}
+                {% if comment.is_active %}
+                <div class="review-card shadow-sm">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="user-icon">{{ comment.user.username|slice:":1"|upper }}</div>
+                        <div class="ms-3">
+                            <h6 class="mb-0 fw-bold">{{ comment.user.username }}</h6>
+                            <small class="text-muted">{{ comment.created_at|date:"d-M, Y" }}</small>
                         </div>
-                        <p class="text-muted mb-0">Haqiqatdan ham sifatli ekan. Ayniqsa TECH WORLD xizmati juda tez. Tavsiya qilaman!</p>
                     </div>
-                    <button class="btn btn-outline-dark rounded-pill px-4 mt-3">Barcha sharhlarni ko'rish</button>
+                    <p class="text-muted mb-0">{{ comment.body }}</p>
                 </div>
-                <div class="col-lg-4">
-                    <div class="bg-light p-4 rounded-4 mt-lg-0 mt-4">
-                        <h5 class="fw-bold mb-3">Sizga yoqdimi?</h5>
-                        <p class="small text-muted mb-4">O'z tajribangiz bilan bo'lishing va boshqa xaridorlarga yordam bering.</p>
-                        <button class="btn btn-primary w-100 rounded-pill py-2">Sharh yozish</button>
+                {% endif %}
+            {% empty %}
+                <div class="alert alert-light border text-muted">
+                    Hozircha sharhlar mavjud emas. Birinchi bo'lib o'z fikringizni bildiring!
+                </div>
+            {% endfor %}
+
+            {% if product.comments.count > 3 %}
+                <button class="btn btn-outline-dark rounded-pill px-4 mt-3">Barcha sharhlarni ko'rish</button>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="bg-light p-4 rounded-4 mt-lg-0 mt-4 shadow-sm border">
+                <h5 class="fw-bold mb-3">Sizga yoqdimi?</h5>
+                <p class="small text-muted mb-4">O'z tajribangiz bilan bo'lishing va boshqa xaridorlarga yordam bering.</p>
+
+                {% if user.is_authenticated %}
+                    <form action="{% url 'add_comment' product.id %}" method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea name="body" class="form-control border-0 shadow-sm" rows="4" placeholder="Fikringizni shu yerga yozing..." required style="border-radius: 15px;"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold transition">
+                            Sharh yozish
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="text-center py-3">
+                        <p class="small text-muted mb-3">Sharh qoldirish uchun tizimga kiring.</p>
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary w-100 rounded-pill">Kirish</a>
                     </div>
-                </div>
+                {% endif %}
             </div>
         </div>
+    </div>
+</div>
     </div>
 </div>
 

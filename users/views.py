@@ -10,11 +10,11 @@ from django.core.mail import send_mail
 from .models import User
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
-
+from django.shortcuts import get_object_or_404
 from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
-from .models import Product, User
+from .models import Product, User,WishList
 from products.models import  Product, Category, Banner
 from django.contrib import messages
 
@@ -27,28 +27,29 @@ class RegisterView(View):
         email = request.POST['email']
         password1 = request.POST['password']
         password2 = request.POST['confirm_password']
+        print(f"111111111DEBUG: Username: {username}, Email: {email}")
 
+        # 1. Username bandligini tekshirish
         if User.objects.filter(username=username).exists():
-            return render(request, 'auth/register.html', {
-                "error":"Bu username band"
-            })
+            return render(request, 'auth/register.html', {"error": "Bu username band"})
 
+        # 2. Email bandligini tekshirish (BU QATORNI TEPAGA CHIQARDIM)
+        if User.objects.filter(email__iexact=email).exists():
+            found_user = User.objects.filter(email__iexact=email).first()
+            print(f"XATO: Email bazada bor! Uni ishlatayotgan user: {found_user.username}")
+            return render(request, 'auth/register.html', {"error": "Bu email ishlatilgan"})
+        # 3. Parollar mosligini tekshirish
         if password1 != password2:
-            return render(request, 'auth/register.html', {
-                "error": "Parollar mos emas"
-            })
+            return render(request, 'auth/register.html', {"error": "Parollar mos emas"})
 
-        if User.objects.filter(email=email).exists():
-            return render(request, 'auth/register.html', {
-                "error": "Bu email ishlatilgan"
-            })
-
-        User.objects.create_user(
+        # FAQAT HAMMA TEKSHIRUVDAN O'TGANDAN KEYIN USER YARATAMIZ
+        user = User.objects.create_user(
             username=username,
             email=email,
             password=password1,
             is_active=False
         )
+
         code = str(random.randint(100000, 999999))
 
         send_mail(
@@ -59,11 +60,12 @@ class RegisterView(View):
             fail_silently=False,
         )
 
-        email_verify = EmailVerify.objects.create(
+        # EmailVerify yaratish
+        EmailVerify.objects.create(
             email=email,
             code=code,
         )
-        email_verify.save()
+
 
         request.session['email'] = email
         return redirect('email_verify')
@@ -277,12 +279,19 @@ def index(request):
         cart_items = Cart.objects.filter(user=request.user)
         total_cart_price = sum(item.product.price * item.quantity for item in cart_items)
 
+    wishlist_product_ids = []
+    if request.user.is_authenticated:
+        # Userning wishlistidagi mahsulotlarni ID larini olamiz
+        wishlist_product_ids = request.user.wishlist.values_list('product_id', flat=True)
+
+
     context = {
         'products': products,
         'categories': categories,
         'banner': banner,
         'cart_items': cart_items,
         'total_cart_price': total_cart_price,
+        'wishlist_product_ids': wishlist_product_ids,
     }
     return render(request, 'index.html', context)
 
@@ -293,3 +302,61 @@ def remove_cart_item(request, id):
 
     return redirect('index')
 
+
+
+
+
+
+def toggle_wishlist(request, id):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    product = get_object_or_404(Product, id=id)
+    wishlist_item = WishList.objects.filter(user=request.user, product=product).first()
+
+    if wishlist_item:
+        wishlist_item.delete()  # Agar allaqachon bo'lsa, o'chiradi
+    else:
+        WishList.objects.create(user=request.user, product=product)  # Bo'lmasa, qo'shadi
+
+    # Kelgan sahifasiga qaytarib yuboradi
+    return redirect(request.META.get('HTTP_REFERER', 'index'))
+
+
+
+def my_wishlist(request):
+    # Foydalanuvchining saralangan mahsulotlarini olish
+    wishlist_items = WishList.objects.filter(user=request.user)
+
+    return render(request, 'wishlist.html', {
+        'wishlist_items': wishlist_items
+    })
+
+
+from django.shortcuts import redirect, get_object_or_404
+from .models import Product, Comment
+
+
+def add_comment(request, product_id):
+    if request.method == "POST":
+        product = get_object_or_404(Product, id=product_id)
+        comment_body = request.POST.get('body')  # HTML dagi name="body" dan oladi
+
+        if request.user.is_authenticated and comment_body:
+            Comment.objects.create(
+                product=product,
+                user=request.user,
+                body=comment_body,
+                is_active=True  # Default True bo'lsa ham, aniqlik uchun
+            )
+        return redirect('product_detail', id=product_id)
+
+
+from django.contrib.auth import logout
+
+
+def logout_view(request):
+    if request.method == 'POST':
+        logout(request)
+        return redirect('index')
+    return redirect('index')
