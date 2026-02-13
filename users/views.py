@@ -29,20 +29,16 @@ class RegisterView(View):
         password2 = request.POST['confirm_password']
         print(f"111111111DEBUG: Username: {username}, Email: {email}")
 
-        # 1. Username bandligini tekshirish
         if User.objects.filter(username=username).exists():
             return render(request, 'auth/register.html', {"error": "Bu username band"})
 
-        # 2. Email bandligini tekshirish (BU QATORNI TEPAGA CHIQARDIM)
         if User.objects.filter(email__iexact=email).exists():
             found_user = User.objects.filter(email__iexact=email).first()
             print(f"XATO: Email bazada bor! Uni ishlatayotgan user: {found_user.username}")
             return render(request, 'auth/register.html', {"error": "Bu email ishlatilgan"})
-        # 3. Parollar mosligini tekshirish
         if password1 != password2:
             return render(request, 'auth/register.html', {"error": "Parollar mos emas"})
 
-        # FAQAT HAMMA TEKSHIRUVDAN O'TGANDAN KEYIN USER YARATAMIZ
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -60,7 +56,6 @@ class RegisterView(View):
             fail_silently=False,
         )
 
-        # EmailVerify yaratish
         EmailVerify.objects.create(
             email=email,
             code=code,
@@ -138,7 +133,6 @@ class AdminDashboardView(View):
         users = User.objects.all().order_by('-id')
         order_items = OrderItem.objects.all().order_by('-id')
 
-        # Har bir itemning get_total_price() metodidan foydalanib jami summani hisoblaymiz
         total_sales = sum(item.get_total_price() for item in order_items)
 
         context = {
@@ -146,7 +140,7 @@ class AdminDashboardView(View):
             'users': users,
             'order_items': order_items,
             'total_sales': total_sales,
-            'categories_count': Category.objects.count(),  # Kategoriya soni
+            'categories_count': Category.objects.count(),
         }
         return render(request, 'admin/admin_dashboard.html', context)
 
@@ -218,7 +212,6 @@ def checkout(request):
 
     total_sum = sum(item.total_price for item in cart_items)
 
-    # Balansni tekshirishda xatolikni oldini olish
     user_balance = request.user.balance if request.user.balance is not None else 0
 
     if user_balance < total_sum:
@@ -232,7 +225,6 @@ def checkout(request):
             for item in cart_items:
                 real_price = item.product.discount_price if item.product.precent > 0 else item.product.price
 
-                # Ombor zaxirasini tekshirish
                 if item.product.stock < item.quantity:
                     print(f"XATO: {item.product.title} omborda yetarli emas!")
                     raise Exception(f"{item.product.title} yetarli emas")
@@ -281,7 +273,7 @@ def index(request):
 
     wishlist_product_ids = []
     if request.user.is_authenticated:
-        # Userning wishlistidagi mahsulotlarni ID larini olamiz
+
         wishlist_product_ids = request.user.wishlist.values_list('product_id', flat=True)
 
 
@@ -315,17 +307,15 @@ def toggle_wishlist(request, id):
     wishlist_item = WishList.objects.filter(user=request.user, product=product).first()
 
     if wishlist_item:
-        wishlist_item.delete()  # Agar allaqachon bo'lsa, o'chiradi
+        wishlist_item.delete()
     else:
-        WishList.objects.create(user=request.user, product=product)  # Bo'lmasa, qo'shadi
+        WishList.objects.create(user=request.user, product=product)
 
-    # Kelgan sahifasiga qaytarib yuboradi
     return redirect(request.META.get('HTTP_REFERER', 'index'))
 
 
 
 def my_wishlist(request):
-    # Foydalanuvchining saralangan mahsulotlarini olish
     wishlist_items = WishList.objects.filter(user=request.user)
 
     return render(request, 'wishlist.html', {
@@ -340,14 +330,14 @@ from .models import Product, Comment
 def add_comment(request, product_id):
     if request.method == "POST":
         product = get_object_or_404(Product, id=product_id)
-        comment_body = request.POST.get('body')  # HTML dagi name="body" dan oladi
+        comment_body = request.POST.get('body')
 
         if request.user.is_authenticated and comment_body:
             Comment.objects.create(
                 product=product,
                 user=request.user,
                 body=comment_body,
-                is_active=True  # Default True bo'lsa ham, aniqlik uchun
+                is_active=True
             )
         return redirect('product_detail', id=product_id)
 

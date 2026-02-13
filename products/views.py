@@ -19,16 +19,13 @@ class HomeView(View):
         })
 
 
-  # Buni eng tepaga qo'shing
 from django.views import View
 
 
 class Product_all_view(View):
     def get(self, request):
-        # 1. Qidiruv so'zini olish
         query = request.GET.get('q')
 
-        # 2. Mahsulotlarni qidiruvga qarab filtrlash
         if query:
             products = Product.objects.filter(
                 Q(title__icontains=query) | Q(desc__icontains=query)
@@ -36,7 +33,6 @@ class Product_all_view(View):
         else:
             products = Product.objects.all()
 
-        # Savatcha qismi (O'zgarishsiz qoldi)
         cart_items = []
         total_cart_price = 0
         if request.user.is_authenticated:
@@ -47,7 +43,7 @@ class Product_all_view(View):
             'products': products,
             'cart_items': cart_items,
             'total_cart_price': total_cart_price,
-            'query': query  # Bu qidirilgan so'zni inputda saqlab turish uchun kerak
+            'query': query
         })
 
 class About(View):
@@ -67,7 +63,7 @@ class ProductDetails(View):
         if request.user.is_authenticated:
             cart_items = Cart.objects.filter(user=request.user)
             total_cart_price = sum(item.product.price * item.quantity for item in cart_items)
-        # ---------------------------------
+
 
         return render(request, 'product_detail.html', {
             'product': product,
